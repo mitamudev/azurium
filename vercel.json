@@ -1,0 +1,58 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/load",
+      "missing": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(Roblox|WinInet|roblox|wininet).*"
+        }
+      ],
+      "destination": "/denied",
+      "permanent": false
+    },
+    {
+      "source": "/load",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": ".*text/html.*"
+        }
+      ],
+      "destination": "/denied",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/denied",
+      "destination": "/denied.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/load",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        },
+        {
+          "key": "Content-Disposition",
+          "value": "inline"
+        }
+      ]
+    }
+  ]
+}

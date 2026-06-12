@@ -1,0 +1,4 @@
+-- Azurium X Edition loader endpoint
+-- Paste your Roblox Lua script here. This file is intended to be served at /load.
+
+print("Azurium X Edition loader online")
