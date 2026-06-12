@@ -1,7 +1,9 @@
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import unquote, urlparse
+from urllib.request import Request, urlopen
 import argparse
+import json
 import mimetypes
 
 
@@ -35,6 +37,10 @@ class AzuriumHandler(BaseHTTPRequestHandler):
             self.handle_load()
             return
 
+        if route.startswith("/map-icon/"):
+            self.handle_map_icon(route)
+            return
+
         self.handle_static(parsed.path)
 
     def handle_load(self):
@@ -57,6 +63,36 @@ class AzuriumHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
+
+    def handle_map_icon(self, route):
+        place_id = route.rsplit("/", 1)[-1]
+
+        if not place_id.isdigit():
+            self.not_found()
+            return
+
+        api_url = (
+            "https://thumbnails.roblox.com/v1/places/gameicons"
+            f"?placeIds={place_id}&size=256x256&format=Png&isCircular=false"
+        )
+
+        try:
+            request = Request(api_url, headers={"User-Agent": "AzuriumStatus/1.0"})
+            with urlopen(request, timeout=8) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+
+            image_url = payload["data"][0]["imageUrl"]
+
+            if not image_url:
+                self.not_found()
+                return
+
+            self.send_response(302)
+            self.send_header("Location", image_url)
+            self.send_header("Cache-Control", "public, max-age=3600")
+            self.end_headers()
+        except Exception:
+            self.not_found()
 
     def handle_static(self, request_path):
         path = unquote(request_path.split("?", 1)[0])
